@@ -69,7 +69,7 @@ struct inserirObj{
 
 // Struct que representa uma aresta do grafo de similaridade
 struct Aresta{
-	int destino, peso; // não precisa de origem pois o id do item ja nos dá á origem, destino = id do item relacionado, peso = valor de similaridade
+	int destino, peso; // nÃ£o precisa de origem pois o id do item ja nos dá à origem, destino = id do item relacionado, peso = valor de similaridade
 };
 
 struct No{
@@ -224,28 +224,103 @@ void buscarItens(){
     esperarESC();
 }
 
-void verificarItem(){
+bool buscarNomeABB(No* noAtual, string nomeBusca) { // funçao auxiliar para buscar por nome
+    if (noAtual == NULL) return false;
+    if (noAtual->item.nomeItem == nomeBusca) return true;
+    
+    return buscarNomeABB(noAtual->esq, nomeBusca) || buscarNomeABB(noAtual->dir, nomeBusca);
+}
+
+void verificarItem(){ //verificar se o item existe no sistema
     limparTela();
     cout << VERDE << NEGRITO;
     centralizar("+=====================================+");
-    centralizar("|        >> VERIFICAR ITEM <<         |");
+    centralizar("|   >> VERIFICAR EXISTENCIA ITEM <<   |");
     centralizar("+=====================================+");
-    cout << RESET << VERDE;
-    centralizar("| Funcionalidade em construcao...     |");
-    centralizar("+-------------------------------------+");
+    cout << RESET << VERDE << endl;
+    
+    string nomeBusca;
+    centralizar("Digite o nome do item: ", false);
+    cin.ignore();
+    getline(cin, nomeBusca);
+
+    cout << endl;
+
+    if(buscarNomeABB(raiz, nomeBusca)) {
+        centralizar("+-------------------------------------+");
+        centralizar("|         >> ITEM ENCONTRADO! <<      |");
+        centralizar("+-------------------------------------+");
+    } else {
+        centralizar("+-------------------------------------+");
+        centralizar("|       >> ITEM NAO ENCONTRADO! <<    |");
+        centralizar("+-------------------------------------+");
+    }
+
     cout << RESET << endl;
     esperarESC();
 }
 
-void listarItemA(){ //listar item em ordem alfabética
+struct NoNome { // começo do codigo da arvore de busca binária
+    inserirObj item;
+    NoNome* esq;
+    NoNome* dir;
+};
+
+NoNome* inserirABBNome(NoNome* raizNome, inserirObj novo) {
+    if(raizNome == NULL){
+        NoNome* novoNo = new NoNome;
+        novoNo->item = novo;
+        novoNo->esq = NULL;
+        novoNo->dir = NULL;
+        return novoNo;
+    }
+	
+    if(novo.nomeItem < raizNome->item.nomeItem)
+        raizNome->esq = inserirABBNome(raizNome->esq, novo);
+    else
+        raizNome->dir = inserirABBNome(raizNome->dir, novo);
+
+    return raizNome;
+}
+
+void emOrdemNome(NoNome* raizNome) {
+    if(raizNome != NULL) {
+        emOrdemNome(raizNome->esq);
+        cout << "Nome: " << raizNome->item.nomeItem 
+             << " | ID: " << raizNome->item.id 
+             << " | Dono: " << raizNome->item.nomeDono 
+             << " | Raridade: " << raizNome->item.raridade << endl;
+        emOrdemNome(raizNome->dir);
+    }
+}
+
+void listarItemA(){ //listar item em ordem alfabÃ©tica
     limparTela();
     cout << VERDE << NEGRITO;
     centralizar("+=====================================+");
-    centralizar("|      >> LISTAR (ALFABETICA) <<      |");
+    centralizar("|   >> LISTAR ITENS (ALFABETICA) <<   |");
     centralizar("+=====================================+");
-    cout << RESET << VERDE;
-    centralizar("| Funcionalidade em construcao...     |");
-    centralizar("+-------------------------------------+");
+    cout << RESET << VERDE << endl;
+    
+    NoNome* raizNome = NULL;
+    list<inserirObj>::iterator it;
+	
+    for(it = itens.begin(); it != itens.end(); it++){
+        raizNome = inserirABBNome(raizNome, *it);
+    }
+    
+    if(raizNome == NULL) {
+        centralizar("+-------------------------------------+");
+        centralizar("|      >> NENHUM ITEM CADASTRADO <<   |");
+        centralizar("+-------------------------------------+");
+    } else {
+        centralizar("+-------------------------------------+");
+        centralizar("|             >> LISTA <<             |");
+        centralizar("+-------------------------------------+");
+        cout << endl;
+        emOrdemNome(raizNome);
+    }
+
     cout << RESET << endl;
     esperarESC();
 }
@@ -357,7 +432,8 @@ int main (){
 			remover();
 			break;
 		case 9:
-			cout << "Saindo..." << endl;
+    		centralizar("Saindo...");
+    		cout << RESET << endl;
 			break;
 		}
 	}
@@ -366,4 +442,3 @@ int main (){
 
 	return 0;
 }
-
